@@ -12,6 +12,10 @@
   "license": "ISC",
   "devDependencies": {
     "@types/node": "^22.10.10",
+    "benchmark": "^2.1.4",
     "mocha": "^11.1.0"
+  },
+  "dependencies": {
+    "uuid": "^11.0.5"
   }
 }

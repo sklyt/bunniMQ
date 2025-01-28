@@ -1,0 +1,68 @@
+import Benchmark from "benchmark";
+import ClassicDoublyLinkedList from "../lib/queue/classic.js";
+import DoublyLinkedListWithMap from "../lib/queue/classicwithmap.js";
+
+// FIRST RUN:
+// classiQueu x 166 ops/sec ±103.08% (5 runs sampled)
+// classic queue final size:  319200
+// Classic Queue - Memory Usage: 27.48 MB
+// QueueQwithMap x 40,710 ops/sec ±25.22% (33 runs sampled)
+// QueueQwithMap final size:  18461100
+// Enhanced Queue with Map - Memory Usage: 1422.56 MB
+// Fastest is QueueQwithMap
+// SECOND RUN:
+// classiQueu x 110 ops/sec ±98.95% (5 runs sampled)
+// classic queue final size:  361200
+// Classic Queue - Memory Usage: 30.59 MB
+// QueueQwithMap x 38,710 ops/sec ±22.98% (33 runs sampled)
+// QueueQwithMap final size:  14740600
+// Enhanced Queue with Map - Memory Usage: 1145.32 MB
+// Fastest is QueueQwithMap
+
+
+let classicList = new ClassicDoublyLinkedList();
+let enhancedList = new DoublyLinkedListWithMap();
+let size = 100;
+
+const logMemory = (label) => {
+  const memory = process.memoryUsage();
+  console.log(`${label} - Memory Usage: ${(memory.heapUsed / 1024 / 1024).toFixed(2)} MB`);
+};
+
+const measureLatency = (fn, label) => {
+  const start = process.hrtime.bigint();
+  fn();
+  const end = process.hrtime.bigint();
+  console.log(`${label} - Operation latency: ${(end - start) / BigInt(1e6)} ms`);
+};
+
+const suite = new Benchmark.Suite();
+
+suite
+  .add("classiQueu", function () {
+    for (let i = 0; i < size; i++) classicList.enqueue(`Node_${i}`);
+    classicList.delete(Math.floor(size / 2));
+    classicList.dequeue();
+  })
+  .add("QueueQwithMap", function () {
+    for (let i = 0; i < size; i++) enhancedList.enqueue(i, `Node_${i}`);
+    enhancedList.deleteById(`Node_${Math.floor(size / 2)}`);
+    enhancedList.dequeue();
+  })
+  .on("cycle", function (event) {
+    console.log(String(event.target));
+
+    if (event.target.name === "classiQueu") {
+      console.log("classic queue final size: ", classicList.size);
+      logMemory("Classic Queue");
+    }
+
+    if (event.target.name === "QueueQwithMap") {
+      console.log("QueueQwithMap final size: ", enhancedList.size);
+      logMemory("Enhanced Queue with Map");
+    }
+  })
+  .on("complete", function () {
+    console.log("Fastest is " + this.filter("fastest").map("name"));
+  })
+  .run({ async: true, delay: 0.1, minSamples: 100 });
