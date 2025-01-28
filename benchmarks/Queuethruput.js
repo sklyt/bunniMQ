@@ -18,11 +18,19 @@ import DoublyLinkedListWithMap from "../lib/queue/classicwithmap.js";
 // QueueQwithMap final size:  14740600
 // Enhanced Queue with Map - Memory Usage: 1145.32 MB
 // Fastest is QueueQwithMap
-
+// later random run
+// classiQueu x 80.36 ops/sec ±116.05% (5 runs sampled)
+// classic queue final size:  422700
+// Classic Queue - Memory Usage: 34.72 MB
+// QueueQwithMap x 13,511 ops/sec ±90.04% (22 runs sampled)
+// QueueQwithMap final size:  7437200
+// Enhanced Queue with Map - Memory Usage: 598.59 MB
+// Fastest is QueueQwithMap
 
 let classicList = new ClassicDoublyLinkedList();
 let enhancedList = new DoublyLinkedListWithMap();
-let size = 100;
+let size = 1;
+const QUEUE_SIZES = [3, 10, 100, 1_000, 10_000];
 
 const logMemory = (label) => {
   const memory = process.memoryUsage();
@@ -37,9 +45,10 @@ const measureLatency = (fn, label) => {
 };
 
 const suite = new Benchmark.Suite();
+var sizedQues = new Benchmark.Suite();
 
 suite
-  .add("classiQueu", function () {
+  .add("classiQueu", function () { 
     for (let i = 0; i < size; i++) classicList.enqueue(`Node_${i}`);
     classicList.delete(Math.floor(size / 2));
     classicList.dequeue();
@@ -65,4 +74,46 @@ suite
   .on("complete", function () {
     console.log("Fastest is " + this.filter("fastest").map("name"));
   })
-  .run({ async: true, delay: 0.1, minSamples: 100 });
+  .run({ async: false, delay: 0.1, minSamples: 100 });
+
+
+
+  
+QUEUE_SIZES.forEach((size) => {
+  // Classic Queue Test
+  sizedQues.add(`ClassicQueue (${size} nodes)`, function () {
+    const list =  new ClassicDoublyLinkedList();
+    // Initialize with `size` nodes
+    for (let i = 0; i < size; i++) list.enqueue(`Node_${i}`);
+    // Simulate work: delete middle node + dequeue
+    list.delete(`Node_${Math.floor(size / 2)}`);
+    list.dequeue();
+  });
+
+  // Map-Based Queue Test
+  sizedQues.add(`MapQueue (${size} nodes)`, function () {
+      const list = new DoublyLinkedListWithMap();
+    // Initialize with `size` nodes
+    for (let i = 0; i < size; i++) list.enqueue(i, `Node_${i}`);
+    // Simulate work: delete middle node + dequeue
+    list.deleteById(Math.floor(size / 2));
+    list.dequeue();
+  });
+})
+
+sizedQues
+.on('cycle', (event) => {
+  console.log(String(event.target))
+  
+ logMemory(`${event.target.name}`)
+
+})
+.on('complete', function () {
+  console.log('Fastest for each size:');
+  QUEUE_SIZES.forEach((size) => {
+    const tests = this.filter((test) => test.name.includes(`${size} nodes`));
+    const fastest = tests.sort((a, b) => b.hz - a.hz)[0];
+    console.log(`- ${size} nodes: ${fastest.name}`);
+  });
+})
+.run({ async: false, delay: 0.1, minSamples: 100});
