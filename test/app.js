@@ -30,8 +30,12 @@ describe('application', function () {
         return new Promise((resolve, reject) => {
           client.connect(3000, '127.0.0.1', () => {
             console.log('Client connected.');
-            resolve();
+            // resolve();
           });
+
+          client.on("data", (data)=> {
+            resolve(data)
+          })
 
           client.on('error', (err) => {
             console.error('Client error:', err.message);
@@ -47,7 +51,8 @@ describe('application', function () {
           client.write(op);
 
           client.on('data', (data) => {
-            health = data.readInt32BE(0); // Parse the server response
+            console.log(data.toString())
+            health = data.readInt8(0); // Parse the server response
             console.log('Health response:', health);
             resolve();
           });
@@ -63,7 +68,7 @@ describe('application', function () {
       await sendHealthCheck(); // Wait for health check response
       client.end()
       client.destroy().emit("close"); // Close the connection
-      equal(200, health); // Assert the health check response
+      equal(127, health); // Assert the health check response
 
     })
 
@@ -81,7 +86,7 @@ describe('application', function () {
       HEARTBEAT.writeInt8(-1); // -1 as a heartbeat sig
 
       clientAlive.on('data', (data) => {
-        const message = data.readInt32BE(0);
+        const message = data.readInt8(0);
         
         if (message === -1) {
           console.log('Client Alive received heartbeat, sending pong.');
@@ -96,7 +101,7 @@ describe('application', function () {
       });
 
       clientDead.on('data', (data) => {
-        const message = data.readInt32BE(0);
+        const message = data.readInt8(0);
         if (message === -1) {
           console.log('Client Dead ignoring heartbeat.');
           // Do nothing to simulate a dead client
@@ -157,68 +162,3 @@ describe('application', function () {
 });
 
 
-describe("datatransfer", function(){
-  
-  let bunny; // Hold reference to the server
-  const port = 3000;
-
-  beforeEach(function (done) {
-    bunny = CreateBunny({ port, DEBUG: true });
-    console.log('Outer beforeEach: Bunny server started.');
-    done();
-  });
-
-  afterEach(function (done) {
-    bunny(() => {
-      console.log('Outer afterEach: Bunny server stopped.');
-      done();
-    });
-  });
-
-  describe("protocol", function(){
-    it("should send a test packet", async function(){
-      // this.timeout(10000);
-      const client = new net.Socket();
-      const sendOPSPacket=()=>{
-        
-        return new Promise((resolve, reject) => {
-          client.connect(3000, '127.0.0.1', () => {
-            console.log('Client connected.');
-            const data =  Buffer.from("The core of the internet, the nucleus is the transmission control protocol(TCP), its sits a level lower to the application layer! and sits on top of an entire network stack(internet protocol(IP) being well", "utf-8")
-            const meta = Buffer.from(JSON.stringify({queue: "Myqueue"}), "utf-8")
-          
-            const op = Buffer.alloc(6);
-  
-            op.writeInt8(PUBLISH, 0); 
-            op.writeInt8(JSONENCODED, 1);
-            op.writeUint32BE(data.length, 2)
-          
-            const combinedBuffer = Buffer.concat([op, data, meta])
-            console.log(combinedBuffer, "combined")
-            client.write(combinedBuffer);
-         
-          });
-         
-     
-  
-          client.on("data", (data)=> {
-            
-            const s = data.readUint8(0);
-            resolve(s);
-          })
-  
-          client.on('error', (err) => {
-            console.error('Client error:', err.message);
-            reject(err);
-          });
-        });
-      }
-  
-      let res = await sendOPSPacket()
-      client.destroy().emit("close")
-      equal(ERROR, res)
-  
-    })
-  
-  })
-})

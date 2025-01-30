@@ -29,8 +29,12 @@ describe('queue', function () {
             return new Promise((resolve, reject) => {
               client.connect(3000, '127.0.0.1', () => {
                 console.log('Client connected.');
-                resolve();
+                // resolve();
               });
+
+              client.on("data", data => {
+                resolve(data)
+              })
     
               client.on('error', (err) => {
                 console.error('Client error:', err.message);
@@ -43,11 +47,10 @@ describe('queue', function () {
             return new Promise((resolve, reject) => {
                 const options =   {
                     QueueExpiry: 60,
-                    MessageExpiry: 30,
-                    AckExpiry: 30,
+                    MessageExpiry: 5,
+                    AckExpiry: 5,
                     Durable: false,
                     noAck: false,
-              
                   }
                 const queuename =  Buffer.from("Myqueue", "utf-8")
                 const opts = Buffer.from(JSON.stringify(options), "utf-8")
@@ -56,10 +59,13 @@ describe('queue', function () {
               op.writeInt8(JSONENCODED, 1);
               op.writeUint32BE(queuename.length, 2)
               const combinedBuffer = Buffer.concat([op, queuename, opts])
-              client.write(combinedBuffer);
+              
+                client.write(combinedBuffer);
+              
+            
     
               client.on('data', (data) => {
-                RES = data.readUint8(0); // Parse the server response
+                RES = data.readInt8(0); // Parse the server response
                 console.log('queue creation response:', RES);
                 equal(SUCCESS, RES); // Assert the health check response
                 resolve();
@@ -82,10 +88,12 @@ describe('queue', function () {
               op.writeInt8(JSONENCODED, 1);
               op.writeUint32BE(msg.length, 2)
               const combinedBuffer = Buffer.concat([op, msg, opts])
-              client.write(combinedBuffer);
+          
+                  client.write(combinedBuffer);
+            
     
               client.on('data', (data) => {
-                RES = data.readUint8(0); // Parse the server response
+                RES = data.readInt8(0); // Parse the server response
                 console.log('Message res:', RES);
                 equal(SUCCESS, RES); // Assert the health check response
                 resolve();
