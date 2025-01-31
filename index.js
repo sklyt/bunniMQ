@@ -1,5 +1,10 @@
 
 import CreateBunny from "./lib/bunny.js";
+import { fileURLToPath } from 'url';
+import path from "path"
+import DEFAULT_OPTS from "./lib/settings.js";
+
+DEFAULT_OPTS.cwd = path.dirname(fileURLToPath(import.meta.url))
 
 
 const start = process.hrtime.bigint();
