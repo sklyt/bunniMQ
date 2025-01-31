@@ -1,5 +1,9 @@
+
 import CreateBunny from "./lib/bunny.js";
+
+
 const start = process.hrtime.bigint();
+
 CreateBunny({port: 3000, DEBUG: true})
 const end = process.hrtime.bigint();
 
