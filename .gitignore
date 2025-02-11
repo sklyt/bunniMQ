@@ -8,4 +8,4 @@ queues.db-wal
 auth.db
 auth.db-shm
 auth.db-wal
-
+dist
