@@ -1,4 +1,4 @@
-## Pure JavaScript Message Broker (Built on longed TCP and Buffers)
+## Pure JavaScript Message Broker (Built on long lived TCP and Buffers)
 
 ✅ Longed Lived TCP
 
