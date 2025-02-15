@@ -87,7 +87,7 @@ const perms = {
 
 ```
 
-will be loaded when Bunny boots up and save in a sqlite database
+creds will be loaded when Bunny boots up and saved in a sqlite database
 
 
 ### Producer/Publisher 
