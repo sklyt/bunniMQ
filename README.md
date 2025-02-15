@@ -1,12 +1,19 @@
 ## Pure JavaScript Message Broker (Built on longed TCP and Buffers)
 
 ✅ Longed Lived TCP
+
 ✅ Raw buffers
+
 ✅ Queue Management, Ack and clean up 
+
 ✅ Client driver based on events and event queues
+
 ✅ Pub/Sub 
+
 ✅ Bson serialization and Desirialization: Durable queues
+
 ✅ Handshake and Auth
+
 
 Bunni is a 4 day experiment for an article series that went decent!
 
