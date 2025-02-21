@@ -1,5 +1,5 @@
 {
-  "name": "bunni",
+  "name": "bunnimq",
   "version": "0.0.1",
   "description": "node native message broker in pure JS",
   "main": "dist/index.js",
