@@ -1,6 +1,6 @@
 {
   "name": "bunnimq",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "node native message broker in pure JS",
   "main": "dist/index.js",
   "type": "module",

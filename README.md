@@ -20,7 +20,7 @@ Bunni is a 4 day experiment for an article series that went decent!
 ## Getting Started
 
 ```js
-npm i bunni bunni-driver
+npm i bunni bunnimq-driver
 
 ```
 
@@ -31,7 +31,7 @@ creating bunny:
 
 
 ```js
-import Bunny, {OPTS} from "bunni"
+import Bunny, {OPTS} from "bunnimq"
 import path from "path"
 import { fileURLToPath } from 'url';
 
@@ -94,7 +94,7 @@ creds will be loaded when Bunny boots up and saved in a sqlite database
 
 
 ```js
-import Bunnymq from "bunni-driver"
+import Bunnymq from "bunnimq-driver"
 
 
 const bunny = new Bunnymq({port: 3000, host:"localhost", username: "sk", password: "mypassword"})
@@ -121,7 +121,7 @@ for(let i = 0; i < 100; i++){
 
 ```js
 
-import Bunnymq from "bunni-driver"
+import Bunnymq from "bunnimq-driver"
 
 
 const bunny = new Bunnymq({port: 3000, host:"localhost", username: "john", password: "doees"})

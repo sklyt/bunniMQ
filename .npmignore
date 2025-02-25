@@ -1,0 +1,13 @@
+node_modules
+notes.md
+queues.db
+queues.db-shm
+queues.db-wal
+auth.db
+auth.db-shm
+auth.db-wal
+benchmarks
+lib
+test
+.auth
+
