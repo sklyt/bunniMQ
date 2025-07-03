@@ -1,21 +1,21 @@
-## Pure JavaScript Message Broker (Built on long lived TCP and Buffers)
+## Pure JavaScript Message Broker (long lived TCP and Buffers)
 
-✅ Longed Lived TCP
+- Longed Lived TCP
 
-✅ Raw buffers
+- Raw buffers
 
-✅ Queue Management, Ack and clean up 
+- Queue Management, Ack and clean up 
 
-✅ Client driver based on events and event queues
+- Client driver based on events and event queues
 
-✅ Pub/Sub 
+- Pub/Sub 
 
-✅ Bson serialization and Desirialization: Durable queues
+- Bson serialization and Desirialization: Durable queues
 
-✅ Handshake and Auth
+- Handshake and Auth
 
 
-Bunni is a 4 day experiment for an article series that went decent!
+**Bunni is a 4 day low level JavaScript experiment for an article series, that went decent!**
 
 ## Getting Started
 
