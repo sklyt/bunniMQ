@@ -10,3 +10,4 @@ auth.db-shm
 auth.db-wal
 dist
 benchmarks/test
+quests
