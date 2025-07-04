@@ -3,6 +3,7 @@ import CreateBunny from '../lib/bunny.js';
 import net from "node:net"
 import { CREATE, ERROR, JSONENCODED, NOOPTS, PUBLISH } from '../lib/CONSTANTS.js';
 
+// FIXME: test reflect the files I already annotated with fix mes, there's ineefficient buffer alloc here also etc
 describe('application', function () {
 
   let bunny; // Hold reference to the server
