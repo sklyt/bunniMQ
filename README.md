@@ -1,3 +1,18 @@
+Here’s a tighter, cleaner version that keeps your tone and intent intact:
+
+---
+
+**Bunni is a 4-day low-level JavaScript experiment I did for fun; and it actually turned out decent.**
+
+I wrote it months ago as a joke to see how far I could push barebones JS. After not touching it for a while, I came back and was surprised by how well it worked.
+
+So I marked every code smell and issue (some are bad) with `FIXME` tags—for anyone curious to learn low-level JS by doing.
+
+I’ll also create a new branch where I clean everything up, leaving the original as-is for learning.
+
+
+
+
 ## Pure JavaScript Message Broker (long lived TCP and Buffers)
 
 - Longed Lived TCP
@@ -15,7 +30,7 @@
 - Handshake and Auth
 
 
-**Bunni is a 4 day low level JavaScript experiment for an article series, that went decent!**
+
 
 ## Getting Started
 
