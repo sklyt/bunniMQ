@@ -2,9 +2,9 @@
 
 I wrote it months ago as a joke to see how far I could push barebones JS. After not touching it for a while, I came back and was surprised by how well it worked.
 
-So I marked every code smell and issue (some are really bad) with `FIXME` tags, for anyone curious to learn low-level JS by doing, just switch to the fixme branch.
+So I marked every code smell and issue (some are really bad) with `FIXME` tags, for anyone curious to learn low-level JS by doing, just create a new branch e.g `git checkout -b fixme`.
 
-When I'm done with my cleanup I'll merge fixme to main.
+When I'm done with my cleanup I'll merge my fixme to main.
 
 
 
