@@ -1,7 +1,3 @@
-Here’s a tighter, cleaner version that keeps your tone and intent intact:
-
----
-
 **Bunni is a 4-day low-level JavaScript experiment I did for fun; and it actually turned out decent.**
 
 I wrote it months ago as a joke to see how far I could push barebones JS. After not touching it for a while, I came back and was surprised by how well it worked.
