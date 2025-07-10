@@ -1,26 +1,38 @@
 {
   "name": "bunnimq",
-  "version": "0.0.4",
+  "version": "0.1.0",
   "description": "node native message broker in pure JS",
-  "main": "dist/index.js",
+  "keywords": [
+    "messagebroker"
+  ],
+  "homepage": "https://github.com/sklyt/bunniMQ/tree/main#readme",
+  "bugs": {
+    "url": "https://github.com/sklyt/bunniMQ/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sklyt/bunniMQ.git#main"
+  },
+  "license": "ISC",
+  "author": "sk",
   "type": "module",
+  "main": "dist/index.js",
   "scripts": {
     "test": "mocha",
-    "build": "ncc build index.js -o dist"
-  },
-  "keywords": [],
-  "author": "Sifundo Mhlungu",
-  "license": "ISC",
-  "devDependencies": {
-    "@types/node": "^22.10.10",
-    "@vercel/ncc": "^0.38.3",
-    "benchmark": "^2.1.4",
-    "mocha": "^11.1.0"
+    "build": "node ./build.js"
   },
   "dependencies": {
-    "bcrypt": "^5.1.1",
-    "better-sqlite3": "^11.8.1",
-    "bson": "^6.10.1",
-    "uuid": "^11.0.5"
+    "bcrypt": "^6.0.0",
+    "better-sqlite3": "^12.2.0",
+    "bson": "^6.10.4",
+    "uuid": "^11.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.10",
+    "@vercel/ncc": "^0.38.3",
+    "benchmark": "^2.1.4",
+    "esbuild": "^0.25.5",
+    "mocha": "^11.7.1",
+    "rollup-plugin-esbuild": "^6.2.1"
   }
 }

@@ -1,8 +1,10 @@
 import { equal } from 'assert';
 import CreateBunny from '../lib/bunny.js';
 import net from "node:net"
-import { ERROR, JSONENCODED, NEWQUEUE, NOOPTS, PUBLISH, SUCCESS } from '../lib/CONSTANTS.js';
-
+import { ERROR, JSONENCODED, NEWQUEUE, NOOPTS, PUBLISH, SUCCESS, OPTS } from '../lib/CONSTANTS.js';
+import path from "path"
+import { fileURLToPath } from 'url';
+import DEFAULT_OPTS from '../lib/settings.js';
 // FIXME: test reflect the files I already annotated with fix mes, there's ineefficient buffer alloc here also etc
 
 describe('queue', function () {
@@ -10,6 +12,7 @@ describe('queue', function () {
   const port = 3000;
 
   beforeEach(function (done) {
+        DEFAULT_OPTS.cwd = path.dirname(fileURLToPath(import.meta.url)) 
     bunny = CreateBunny({ port, DEBUG: true });
     console.log('Outer beforeEach: Bunny server started.');
     done();

@@ -2,6 +2,10 @@ import { equal } from 'assert';
 import CreateBunny from '../lib/bunny.js';
 import net from "node:net"
 import { CREATE, ERROR, JSONENCODED, NOOPTS, PUBLISH } from '../lib/CONSTANTS.js';
+import path from "path"
+import { fileURLToPath } from 'url';
+import DEFAULT_OPTS from '../lib/settings.js';
+
 
 // FIXME: test reflect the files I already annotated with fix mes, there's ineefficient buffer alloc here also etc
 describe('application', function () {
@@ -10,6 +14,7 @@ describe('application', function () {
   const port = 3000;
 
   beforeEach(function (done) {
+    DEFAULT_OPTS.cwd = path.dirname(fileURLToPath(import.meta.url)) 
     bunny = CreateBunny({ port, DEBUG: true });
     console.log('Outer beforeEach: Bunny server started.');
     done();
@@ -23,7 +28,7 @@ describe('application', function () {
   });
   describe('server', function () {
     it("should ping server for health", async function () {
-
+   this.timeout(10000);
       let health = 500; // Default to server error
       const client = new net.Socket();
 

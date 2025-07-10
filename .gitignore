@@ -11,3 +11,5 @@ auth.db-wal
 dist
 benchmarks/test
 quests
+lazytest.js
+server-error.log
