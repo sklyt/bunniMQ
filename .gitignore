@@ -12,4 +12,5 @@ dist
 benchmarks/test
 quests
 lazytest.js
+lazyclient.js
 server-error.log
