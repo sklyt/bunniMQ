@@ -2,7 +2,7 @@
 
 I wrote it months ago as a joke to see how far I could push barebones JS. After not touching it for a while, I came back and was surprised by how well it worked.
 
-So I marked every code smell and issue (some are really bad) with `FIXME` tags, for anyone curious to learn low-level JS by doing, just create a new branch e.g `git checkout fixmes`.
+So I marked every code smell and issue (some are really bad) with `FIXME` tags, for anyone curious to learn low-level JS by doing, checkout the fixmes branch `git checkout fixmes`.
 
 I am already applying the changes into main, fixmes will remain unmerged.
 
