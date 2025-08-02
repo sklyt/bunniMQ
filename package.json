@@ -1,6 +1,6 @@
 {
   "name": "bunnimq",
-  "version": "0.1.0",
+  "version": "1.0.1",
   "description": "node native message broker in pure JS",
   "keywords": [
     "messagebroker"
