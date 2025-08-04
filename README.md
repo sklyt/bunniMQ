@@ -1,53 +1,40 @@
+# Bunni Message Broker
+
 **Bunni is a 4-day low-level JavaScript experiment I did for fun; and it actually turned out decent.**
 
 I wrote it months ago as a joke to see how far I could push barebones JS. After not touching it for a while, I came back and was surprised by how well it worked.
 
-So I marked every code smell and issue (some are really bad) with `FIXME` tags, for anyone curious to learn low-level JS by doing, checkout the fixmes branch `git checkout fixmes`.
+So I marked every code smell and issue (some are really bad) with `FIXME` tags. For anyone curious to learn low-level JS by doing, checkout the fixmes branch: `git checkout fixmes`.
 
-I am already applying the changes into main, fixmes will remain unmerged.
+I'm already applying the changes into main; fixmes will remain unmerged.
 
+## Pure JavaScript Message Broker (Long-lived TCP and Buffers)
 
-
-
-## Pure JavaScript Message Broker (long lived TCP and Buffers)
-
-- Longed Lived TCP
- 
+- Long-lived TCP (TLS support)
 - Raw buffers
-
-- Queue Management, Ack and clean up 
-
+- Queue Management, Ack and cleanup 
 - Client driver based on events and event queues
-
 - Pub/Sub 
-
-- Bson serialization and Desirialization: Durable queues
-
+- BSON serialization and deserialization: Durable queues
 - Handshake and Auth
-
-
-
 
 ## Getting Started
 
-```js
+```bash
 npm i bunnimq bunnimq-driver
-
 ```
 
+### The Message Broker
 
-### The message broker
+Creating bunny:
 
-creating bunny:
-
-1. Non-TLS Encrypted
+#### 1. Non-TLS Encrypted
 
 ```js
 // broker.js
 import Bunny from "bunnimq";
 import path from "path";
 import { fileURLToPath } from 'url';
-
 
 Bunny({
   port: 3000,
@@ -58,20 +45,17 @@ Bunny({
     MessageExpiry: 60  // 1 hour
   }
 });
-
 ```
 
-2. Over TLS
+#### 2. Over TLS
 
 ```js
-
 import fs from "node:fs"
 
-
-const CERT_DIR = "C:/Users/[you]/Workspace/personal/JavaScript/backend/crs/TSLserver/certs"
+const CERT_DIR = "C:/Users/[you]/Workspace/personal/JavaScript/backend/crs/TLSserver/certs"
 
 const certs = { 
-     key:  fs.readFileSync(path.join(CERT_DIR, 'server-key.pem')),
+  key: fs.readFileSync(path.join(CERT_DIR, 'server-key.pem')),
   cert: fs.readFileSync(path.join(CERT_DIR, 'server-cert.pem')),
 }
 
@@ -85,206 +69,186 @@ Bunny({
     Durable: true, 
     MessageExpiry: 60  // 1 hour
   },
-    tls: {
+  tls: {
     enabled: true,
     certs,
-    port: 433 // TLS port
-   }
+    port: 443 // TLS port
+  }
 });
-
-
-
 ```
 
-Options:
+#### Options:
 
 ```js
- let DEFAULT_OPTS = {
-    port: 3000, 
-    DEBUG: true,
-    cwd: undefined,
-    queueCleanupInterval: 10,
-    snapshotInterval: 60,
-     //  from RabbitMQ not to give more than one message to a worker at a time. Or, in other words, don't dispatch a new message to a worker until it has processed and acknowledged the previous one. Instead, it will dispatch it to the next worker that is not still busy.
-
-    prefetch: 1,  
-    queue: {
-      QueueExpiry: 60,
-      MessageExpiry: 30,
-      AckExpiry: 10, // 10 minutes to requeue pending messages
-      Durable: false,
-      noAck: true,
-
-    },
-    tls: {
+let DEFAULT_OPTS = {
+  port: 3000, 
+  DEBUG: true,
+  cwd: undefined,
+  queueCleanupInterval: 10,
+  snapshotInterval: 60,
+  // From RabbitMQ: not to give more than one message to a worker at a time. 
+  // In other words, don't dispatch a new message to a worker until it has 
+  // processed and acknowledged the previous one. Instead, it will dispatch 
+  // it to the next worker that is not still busy.
+  prefetch: 1,  
+  queue: {
+    QueueExpiry: 60,
+    MessageExpiry: 30,
+    AckExpiry: 10, // 10 minutes to requeue pending messages
+    Durable: false,
+    noAck: true,
+  },
+  tls: {
     enabled: false,            // master switch
-    port:  0,                  // 0 = same as plain port, or specify e.g. 3443
+    port: 0,                   // 0 = same as plain port, or specify e.g. 3443
     certs: undefined,
     requestCert: false,        // ask client for cert
     rejectUnauthorized: false, // drop unauthorized clients
   }
- 
- }
-
+}
 ```
 
+#### Create `.auth` file:
 
-
-create `.auth` file:
-
-```js
-
+```
 sk:mypassword:4
 jane:doeeee:1
 john:doees:3
-
 ```
 
-credential: username:password:permissions
+Format: `username:password:permissions`
 
 ```js
 const perms = {
-    1 : "PUBLISH",
-    2 : "CONSUME",
-    3 : "PUBLISH|CONSUME",
-    4 : "ADMIN"
+  1: "PUBLISH",
+  2: "CONSUME",
+  3: "PUBLISH|CONSUME",
+  4: "ADMIN"
 }
-
 ```
 
-creds will be loaded when Bunny boots up and saved in a sqlite database
+Credentials will be loaded when Bunny boots up and saved in a SQLite database.
 
-run the broker
+#### Run the broker
 
-```js
-node.js ./broker.js
+```bash
+node ./broker.js
 ```
-
 
 ### Producer/Publisher 
 
-
 ```js
-// producer
+// producer.js
 import BunnyMQ from "bunnimq-driver"
 
 const config = {
-    port: 3000,
-    host: "localhost",
-    username: "sk",
-    password: "mypassword",
-    autoReconnect: true
-
+  port: 3000,
+  host: "localhost",
+  username: "sk",
+  password: "mypassword",
+  autoReconnect: true
 }
 
 const bunny = new BunnyMQ(config)
 
 bunny.queueDeclare({
-    name: "TestQueue", config: {
-        MessageExpiry: 10,
-        AckExpiry: 20, // if not acknowledged in n minutes requeued. if noAck is false
-        Durable: true,
-        noAck: false, // expect acknowledgement from consumer before getting another packet.
-    }
-}, (res) => { console.log("queue creation status:", res) }) // 126 for already exist, 127 for sucess
+  name: "TestQueue", 
+  config: {
+    MessageExpiry: 10,
+    AckExpiry: 20, // if not acknowledged in n minutes, requeue. if noAck is false
+    Durable: true,
+    noAck: false, // expect acknowledgement from consumer before getting another packet
+  }
+}, (res) => { 
+  console.log("queue creation status:", res) // 126 for already exists, 127 for success
+})
 
 for (let i = 0; i < 100; i++) {
-    const audioJobsim = `{"jobId":"${crypto.randomUUID()}-audio","audio":"https://[project_id].supabase.co/storage/v1/object/public/[bucket_name]/[file_path]"}`
-    bunny.publish("TestQueue", audioJobsim, res => { console.log(res) })
+  const audioJobSim = `{"jobId":"${crypto.randomUUID()}-audio","audio":"https://[project_id].supabase.co/storage/v1/object/public/[bucket_name]/[file_path]"}`
+  bunny.publish("TestQueue", audioJobSim, res => { 
+    console.log(res) 
+  })
 }
-
-
 ```
 
-For TLS Encryption(if the broker is TLS enabled)
+#### For TLS Encryption (if the broker is TLS enabled)
 
-```JS
+```js
 import path from "node:path"
 import fs from "node:fs"
 
-const CERT_DIR = "C:/Users/[you]/Workspace/personal/JavaScript/backend/crs/TSLserver/certs"
+const CERT_DIR = "C:/Users/[you]/Workspace/personal/JavaScript/backend/crs/TLSserver/certs"
 
 const config = {
-    port: 433, // your chosen TLS port
-    host: "localhost",
-    username: "sk",
-    password: "mypassword",
-    autoReconnect: true,
-    tls: true,
-    tlsOptions: {
-        ca: fs.readFileSync(path.join(CERT_DIR, 'ca-cert.pem')),
-        key: fs.readFileSync(path.join(CERT_DIR, 'client-key.pem')),
-        cert: fs.readFileSync(path.join(CERT_DIR, 'client-cert.pem')),
-        servername: 'local.bunny' // from the certificate
-    },
-
+  port: 443, // your chosen TLS port
+  host: "localhost",
+  username: "sk",
+  password: "mypassword",
+  autoReconnect: true,
+  tls: true,
+  tlsOptions: {
+    ca: fs.readFileSync(path.join(CERT_DIR, 'ca-cert.pem')),
+    key: fs.readFileSync(path.join(CERT_DIR, 'client-key.pem')),
+    cert: fs.readFileSync(path.join(CERT_DIR, 'client-cert.pem')),
+    servername: 'local.bunny' // from the certificate
+  },
 }
-
-
- 
 ```
 
-Run 
+#### Run 
 
-```js
+```bash
 node ./producer.js
 ```
 
-
-
-### Consumer/worker
-
+### Consumer/Worker
 
 ```js
 // consumer.js
-
 import BunnyMQ from "bunnimq-driver"
 import path from "node:path"
 import fs from "node:fs"
 
-const CERT_DIR = "C:/Users/baned/Workspace/personal/JavaScript/backend/crs/TSLserver/certs"
+const CERT_DIR = "C:/Users/[you]/Workspace/personal/JavaScript/backend/crs/TLSserver/certs"
 
 const config = {
-    port: 433,
-    host: "localhost",
-    username: "sk",
-    password: "mypassword",
-    tls: true,
-    tlsOptions: {
-        ca: fs.readFileSync(path.join(CERT_DIR, 'ca-cert.pem')),
-        key: fs.readFileSync(path.join(CERT_DIR, 'client-key.pem')),
-        cert: fs.readFileSync(path.join(CERT_DIR, 'client-cert.pem')),
-        servername: 'local.bunny' // from the certificate
-    },
-    autoReconnect: true
-
+  port: 443,
+  host: "localhost",
+  username: "sk",
+  password: "mypassword",
+  tls: true,
+  tlsOptions: {
+    ca: fs.readFileSync(path.join(CERT_DIR, 'ca-cert.pem')),
+    key: fs.readFileSync(path.join(CERT_DIR, 'client-key.pem')),
+    cert: fs.readFileSync(path.join(CERT_DIR, 'client-cert.pem')),
+    servername: 'local.bunny' // from the certificate
+  },
+  autoReconnect: true
 }
 
-
-
 const bunny = new BunnyMQ(config)
-bunny.queueDeclare({name: "TestQueue", config:  {
+
+bunny.queueDeclare({
+  name: "TestQueue", 
+  config: {
     MessageExpiry: 1,
     AckExpiry: 1,
     Durable: true,
     noAck: false, // expect ack
-}}, (res)=> {console.log("queue creation status:", res)})
+  }
+}, (res) => {
+  console.log("queue creation status:", res)
+})
 
-bunny.consume("TestQueue",  async(msg) => {
-    console.log('processing', msg)
-    //await new Promise((resolve) => setTimeout(resolve, 1000)); uncomment to simulate work
-    bunny.ack((isSuccess) => console.log("free to take more work", isSuccess))
+bunny.consume("TestQueue", async (msg) => {
+  console.log('processing', msg)
+  // await new Promise((resolve) => setTimeout(resolve, 1000)); // uncomment to simulate work
+  bunny.ack((isSuccess) => console.log("free to take more work", isSuccess))
 }) 
-
-
 ```
 
+#### Run 
 
-run 
-
-```js
+```bash
 node ./consumer.js
 ```
-
-
-
