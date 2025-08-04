@@ -228,18 +228,6 @@ const config = {
 
 const bunny = new BunnyMQ(config)
 
-bunny.queueDeclare({
-  name: "TestQueue", 
-  config: {
-    MessageExpiry: 1,
-    AckExpiry: 1,
-    Durable: true,
-    noAck: false, // expect ack
-  }
-}, (res) => {
-  console.log("queue creation status:", res)
-})
-
 bunny.consume("TestQueue", async (msg) => {
   console.log('processing', msg)
   // await new Promise((resolve) => setTimeout(resolve, 1000)); // uncomment to simulate work
