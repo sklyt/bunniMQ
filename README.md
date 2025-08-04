@@ -12,7 +12,7 @@ I am already applying the changes into main, fixmes will remain unmerged.
 ## Pure JavaScript Message Broker (long lived TCP and Buffers)
 
 - Longed Lived TCP
-
+ 
 - Raw buffers
 
 - Queue Management, Ack and clean up 
@@ -40,14 +40,59 @@ npm i bunni bunnimq-driver
 
 creating bunny:
 
+1. Non-TLS Encrypted
 
 ```js
-import Bunny, {OPTS} from "bunnimq"
-import path from "path"
+// broker.js
+import Bunny from "bunnimq";
+import path from "path";
 import { fileURLToPath } from 'url';
 
-OPTS.cwd = path.dirname(fileURLToPath(import.meta.url))  // used to read .auth file
-Bunny({port: 3000, DEBUG:true})  // start a TCP server
+
+Bunny({
+  port: 3000,
+  DEBUG: true,
+  cwd: path.dirname(fileURLToPath(import.meta.url)), // path to the .auth file
+  queue: {
+    Durable: true, 
+    MessageExpiry: 60  // 1 hour
+  }
+});
+
+```
+
+2. Over TLS
+
+```js
+
+import fs from "node:fs"
+
+
+const CERT_DIR = "C:/Users/[you]/Workspace/personal/JavaScript/backend/crs/TSLserver/certs"
+
+const certs = { 
+     key:  fs.readFileSync(path.join(CERT_DIR, 'server-key.pem')),
+  cert: fs.readFileSync(path.join(CERT_DIR, 'server-cert.pem')),
+}
+
+Bunny({
+  port: 3000,
+  DEBUG: true,
+  cwd: path.dirname(fileURLToPath(import.meta.url)), // path to the .auth file
+  queueCleanupInterval: 20,
+  snapshotInterval: 30,
+  queue: {
+    Durable: true, 
+    MessageExpiry: 60  // 1 hour
+  },
+    tls: {
+    enabled: true,
+    certs,
+    port: 433 // TLS port
+   }
+});
+
+
 
 ```
 
@@ -58,22 +103,31 @@ Options:
     port: 3000, 
     DEBUG: true,
     cwd: undefined,
+    queueCleanupInterval: 10,
+    snapshotInterval: 60,
      //  from RabbitMQ not to give more than one message to a worker at a time. Or, in other words, don't dispatch a new message to a worker until it has processed and acknowledged the previous one. Instead, it will dispatch it to the next worker that is not still busy.
-    prefetch: 1,   // not implemented
+
+    prefetch: 1,  
     queue: {
       QueueExpiry: 60,
       MessageExpiry: 30,
-      AckExpiry: 30,
+      AckExpiry: 10, // 10 minutes to requeue pending messages
       Durable: false,
       noAck: true,
 
     },
+    tls: {
+    enabled: false,            // master switch
+    port:  0,                  // 0 = same as plain port, or specify e.g. 3443
+    certs: undefined,
+    requestCert: false,        // ask client for cert
+    rejectUnauthorized: false, // drop unauthorized clients
+  }
  
  }
 
-
-
 ```
+
 
 
 create `.auth` file:
@@ -100,30 +154,81 @@ const perms = {
 
 creds will be loaded when Bunny boots up and saved in a sqlite database
 
+run the broker
+
+```js
+node.js ./broker.js
+```
+
 
 ### Producer/Publisher 
 
 
 ```js
-import Bunnymq from "bunnimq-driver"
+// producer
+import BunnyMQ from "bunnimq-driver"
 
+const config = {
+    port: 3000,
+    host: "localhost",
+    username: "sk",
+    password: "mypassword",
+    autoReconnect: true
 
-const bunny = new Bunnymq({port: 3000, host:"localhost", username: "sk", password: "mypassword"})
-bunny.QueueDeclare({name: "myqueue2", config:  {
-    QueueExpiry: 60,
-    MessageExpiry: 20,
-    AckExpiry: 10,
-    Durable: true,
-    noAck: false,
-}}, (rres)=> {console.log("queu creation:", rres)})
-
-for(let i = 0; i < 100; i++){
-    // work simulation
-    bunny.Publish(`${Math.random()}-${i+100*8}`, (res)=> {console.log(res)})
 }
+
+const bunny = new BunnyMQ(config)
+
+bunny.queueDeclare({
+    name: "TestQueue", config: {
+        MessageExpiry: 10,
+        AckExpiry: 20, // if not acknowledged in n minutes requeued. if noAck is false
+        Durable: true,
+        noAck: false, // expect acknowledgement from consumer before getting another packet.
+    }
+}, (res) => { console.log("queue creation status:", res) }) // 126 for already exist, 127 for sucess
+
+for (let i = 0; i < 100; i++) {
+    const audioJobsim = `{"jobId":"${crypto.randomUUID()}-audio","audio":"https://[project_id].supabase.co/storage/v1/object/public/[bucket_name]/[file_path]"}`
+    bunny.publish("TestQueue", audioJobsim, res => { console.log(res) })
+}
+
 
 ```
 
+For TLS Encryption(if the broker is TLS enabled)
+
+```JS
+import path from "node:path"
+import fs from "node:fs"
+
+const CERT_DIR = "C:/Users/[you]/Workspace/personal/JavaScript/backend/crs/TSLserver/certs"
+
+const config = {
+    port: 433, // your chosen TLS port
+    host: "localhost",
+    username: "sk",
+    password: "mypassword",
+    autoReconnect: true,
+    tls: true,
+    tlsOptions: {
+        ca: fs.readFileSync(path.join(CERT_DIR, 'ca-cert.pem')),
+        key: fs.readFileSync(path.join(CERT_DIR, 'client-key.pem')),
+        cert: fs.readFileSync(path.join(CERT_DIR, 'client-cert.pem')),
+        servername: 'local.bunny' // from the certificate
+    },
+
+}
+
+
+ 
+```
+
+Run 
+
+```js
+node ./producer.js
+```
 
 
 
@@ -131,29 +236,55 @@ for(let i = 0; i < 100; i++){
 
 
 ```js
+// consumer.js
 
-import Bunnymq from "bunnimq-driver"
+import BunnyMQ from "bunnimq-driver"
+import path from "node:path"
+import fs from "node:fs"
+
+const CERT_DIR = "C:/Users/baned/Workspace/personal/JavaScript/backend/crs/TSLserver/certs"
+
+const config = {
+    port: 433,
+    host: "localhost",
+    username: "sk",
+    password: "mypassword",
+    tls: true,
+    tlsOptions: {
+        ca: fs.readFileSync(path.join(CERT_DIR, 'ca-cert.pem')),
+        key: fs.readFileSync(path.join(CERT_DIR, 'client-key.pem')),
+        cert: fs.readFileSync(path.join(CERT_DIR, 'client-cert.pem')),
+        servername: 'local.bunny' // from the certificate
+    },
+    autoReconnect: true
+
+}
 
 
-const bunny = new Bunnymq({port: 3000, host:"localhost", username: "john", password: "doees"})
-bunny.QueueDeclare({name: "myqueue2", config: undefined}, (rres)=> {console.log("queu creation:", rres)})
 
-let consumed = 0;
-bunny.Consume("myqueue2",  async(msg) => {
+const bunny = new BunnyMQ(config)
+bunny.queueDeclare({name: "TestQueue", config:  {
+    MessageExpiry: 1,
+    AckExpiry: 1,
+    Durable: true,
+    noAck: false, // expect ack
+}}, (res)=> {console.log("queue creation status:", res)})
+
+bunny.consume("TestQueue",  async(msg) => {
     console.log('processing', msg)
-    consumed++
-    const [id, time] = msg.split("-")
-    console.log(id, time)
-    await new Promise((resolve) => setTimeout(resolve, time));
-    console.log("consumed: ", consumed)
-    bunny.Ack((isSuccess) => console.log("free to take more work", isSuccess))
-})
+    //await new Promise((resolve) => setTimeout(resolve, 1000)); uncomment to simulate work
+    bunny.ack((isSuccess) => console.log("free to take more work", isSuccess))
+}) 
+
 
 ```
 
 
-### NOTES
+run 
 
-- No TLS yet, Just RAW TCP (brokers are servers behinds servers)
-- Use classic queue- I did implement a mapped queue which is way faster Just need to tie it, priority queue next
+```js
+node ./consumer.js
+```
+
+
 
