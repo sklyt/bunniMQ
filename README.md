@@ -31,7 +31,7 @@ I am already applying the changes into main, fixmes will remain unmerged.
 ## Getting Started
 
 ```js
-npm i bunni bunnimq-driver
+npm i bunnimq bunnimq-driver
 
 ```
 
